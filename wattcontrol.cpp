@@ -552,5 +552,113 @@ public:
     }
 };
 
-int main() { return 0; }
+// =============================================================
+// 9. FUNCION PRINCIPAL (main)
+//    Crea las instancias del Taller de Mecanizado y ejecuta
+//    el menu interactivo con do-while, switch y validaciones.
+// =============================================================
+int main() {
+    // Inicializa la semilla aleatoria
+    srand(SEMILLA);
+
+    // Asociacion: el Mercado existe de manera independiente al Negocio
+    Mercado mercado;
+
+    // Agregacion: las cargas se crean afuera y luego se agregan al Negocio
+    CargaCritica iluminacionPC("Iluminacion y computadores", POTENCIA_CRITICA);
+    CargaAplazable tornoCNC("Torno CNC", POTENCIA_TORNO, HORAS_MIN_TORNO);
+    CargaAplazable compresor("Compresor", POTENCIA_COMPRESOR, HORAS_MIN_COMPRESOR);
+
+    // Se instancia el Negocio (crea internamente su Medidor por Composicion)
+    Negocio taller("Taller de Mecanizado", POTENCIA_CONTRATADA, &mercado);
+    taller.agregarCarga(&iluminacionPC);
+    taller.agregarCarga(&tornoCNC);
+    taller.agregarCarga(&compresor);
+
+    taller.mostrar();
+
+    // Variables para la lectura manual (inician con valores validos por defecto)
+    int hora = 10;
+    float precio = 500.0;
+    float nivelEmbalses = 65.0;
+    bool haySimulacion = false;
+    int opcion;
+
+    // Menu principal con do-while y switch
+    do {
+        cout << "\n===== WattControl - Taller de Mecanizado =====" << endl;
+        cout << "1. Ingresar lectura manual (hora, precio, embalses)" << endl;
+        cout << "2. Evaluar decision de cada carga" << endl;
+        cout << "3. Simular un dia completo (24 h)" << endl;
+        cout << "4. Ver resumen de la ultima simulacion" << endl;
+        cout << "0. Salir" << endl;
+        cout << "Opcion: ";
+        cin >> opcion;
+
+        switch (opcion) {
+        case 1:
+            // Validacion de hora (0 a 23)
+            do {
+                cout << "Hora (" << HORA_MIN << " a " << HORA_MAX << "): ";
+                cin >> hora;
+                if (hora < HORA_MIN || hora > HORA_MAX) {
+                    cout << "  Error: la hora debe estar entre " << HORA_MIN
+                         << " y " << HORA_MAX << "." << endl;
+                }
+            } while (hora < HORA_MIN || hora > HORA_MAX);
+
+            // Validacion de precio (> 0)
+            do {
+                cout << "Precio de bolsa (COP/kWh > " << PRECIO_MIN_VALIDO << "): ";
+                cin >> precio;
+                if (precio <= PRECIO_MIN_VALIDO) {
+                    cout << "  Error: el precio debe ser mayor que "
+                         << PRECIO_MIN_VALIDO << "." << endl;
+                }
+            } while (precio <= PRECIO_MIN_VALIDO);
+
+            // Validacion de nivel de embalses (0 a 100 %)
+            do {
+                cout << "Nivel de embalses (" << NIVEL_MIN << " a " << NIVEL_MAX << " %): ";
+                cin >> nivelEmbalses;
+                if (nivelEmbalses < NIVEL_MIN || nivelEmbalses > NIVEL_MAX) {
+                    cout << "  Error: el nivel de embalses debe estar entre "
+                         << NIVEL_MIN << " % y " << NIVEL_MAX << " %." << endl;
+                }
+            } while (nivelEmbalses < NIVEL_MIN || nivelEmbalses > NIVEL_MAX);
+
+            cout << "Lectura manual guardada correctamente." << endl;
+            break;
+
+        case 2:
+            taller.evaluar(hora, precio, nivelEmbalses);
+            break;
+
+        case 3:
+            taller.simularDia();
+            haySimulacion = true;
+            break;
+
+        case 4:
+            if (haySimulacion) taller.resumen();
+            else cout << "Primero debe simular un dia con la opcion 3." << endl;
+            break;
+
+        case 0:
+            cout << "Saliendo de WattControl. Hasta luego." << endl;
+            break;
+
+        default:
+            cout << "Opcion invalida. Intente nuevamente." << endl;
+            break;
+        }
+        if (opcion != 0) {
+           cout << endl << "Presione Enter para continuar...";
+           cin.ignore();
+           cin.get();
+        }
+    } while (opcion != 0);
+
+    return 0;
+}
   
